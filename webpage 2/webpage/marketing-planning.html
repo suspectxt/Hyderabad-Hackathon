@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Planning - GrowMore</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :root {
+            --primary-color: #2fa6e6; /* Dark Blue */
+            --accent-color: #36f1d2; /* Light Blue */
+            --success-color: #0e3496; /* Green */
+            --warning-color: #ff9800; /* Orange */
+            --light-bg: #f8f9fa; /* Light Gray */
+            --dark-text: #082668; /* Dark Text */
+            --white: #ffffff; /* White */
+        }
+
+        body {
+            background-color: var(--white);
+            color: var(--dark-text);
+            line-height: 1.6;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: var(--primary-color);
+            padding: 1rem 5%;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            color: var(--white);
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-color);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 7rem 5% 5rem;
+            text-align: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .main-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+        }
+
+        /* Cards Section */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .card h3 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .card p {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card button {
+            background-color: var(--accent-color);
+            color: var(--white);
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .card button:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+
+        /* Footer Styles */
+        footer {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 3rem 5%;
+            margin-top: 5rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-section a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">GrowMore</div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="business-planning.html">Business Planning</a>
+                <a href="#about">About</a>
+                <a href="#contact">Contact</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <h1>Business Planning</h1>
+
+        <!-- Cards Section -->
+        <div class="cards-grid">
+            <!-- Sales Variation Card -->
+            <div class="card">
+                <h3>Sales Variation</h3>
+                <p id="salesVariationText">Analyzing sales data...</p>
+                <button id="salesResolveButton" style="display: none;">Resolve Issue</button>
+            </div>
+
+            <!-- Inventory Variation Card -->
+            <div class="card">
+                <h3>Inventory Variation</h3>
+                <p id="inventoryVariationText">Analyzing inventory data...</p>
+                <button id="inventoryResolveButton" style="display: none;">Resolve Issue</button>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="business-planning.html">Business Planning</a></li>
+                    <li><a href="#about">About</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <ul>
+                    <li>Email: info@growmore.com</li>
+                    <li>Phone: (555) 123-4567</li>
+                    <li>Address: 123 Business St, Growth City</li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <ul>
+                    <li><a href="#facebook">Facebook</a></li>
+                    <li><a href="#twitter">Twitter</a></li>
+                    <li><a href="#instagram">Instagram</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Simulated data for sales and inventory
+        const salesData = {
+            monthlySales: [5000, 6000, 5500, 7000, 6500, 8000], // Example monthly sales data
+            threshold: 55000, // Threshold for sales variation
+        };
+
+        const inventoryData = {
+            currentStock: 500, // Current stock level
+            thresholdStock: 100, // Threshold for restocking
+        };
+
+        // Function to analyze sales variation
+        function analyzeSales() {
+            const salesVariationText = document.getElementById('salesVariationText');
+            const salesResolveButton = document.getElementById('salesResolveButton');
+
+            const averageSales = salesData.monthlySales.reduce((a, b) => a + b, 0) / salesData.monthlySales.length;
+            if (averageSales < salesData.threshold) {
+                salesVariationText.textContent = "Sales are below the threshold. Consider improving marketing strategies.";
+                salesResolveButton.style.display = "block";
+                salesResolveButton.onclick = () => window.location.href = 'data-analytics.html'; // Redirect to data analytics page
+            } else {
+                salesVariationText.textContent = "Sales are stable. No significant variation detected.";
+            }
+        }
+
+        // Function to analyze inventory variation
+        function analyzeInventory() {
+            const inventoryVariationText = document.getElementById('inventoryVariationText');
+            const inventoryResolveButton = document.getElementById('inventoryResolveButton');
+
+            if (inventoryData.currentStock < inventoryData.thresholdStock) {
+                inventoryVariationText.textContent = "Inventory is below the threshold. Check reminders or emails for restocking alerts.";
+                inventoryResolveButton.style.display = "block";
+                inventoryResolveButton.onclick = () => window.location.href = 'inventory-control.html'; // Redirect to inventory page
+            } else {
+                inventoryVariationText.textContent = "Inventory levels are stable. No significant variation detected.";
+            }
+        }
+
+        // Run analysis on page load
+        window.onload = () => {
+            analyzeSales();
+            analyzeInventory();
+        };
+    </script>
+</body>
+</html>

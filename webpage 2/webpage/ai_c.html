@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Generated Content Strategy</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    /* Global Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background-color: #f5f5f7;
+      color: #1d1d1f;
+    }
+
+    header, footer {
+      background-color: #ffffff;
+      color: #1d1d1f;
+      padding: 1.5rem 2rem;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    main {
+      flex: 1;
+      padding: 3rem;
+      max-width: 900px;
+      margin: auto;
+      text-align: center;
+    }
+
+    .page-title {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      letter-spacing: -0.5px;
+    }
+
+    .prompt-section {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .prompt-section input {
+      width: 60%;
+      padding: 0.8rem;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .prompt-section input:focus {
+      border-color: #007aff;
+      outline: none;
+      box-shadow: 0 0 8px rgba(0, 122, 255, 0.3);
+    }
+
+    .prompt-section button {
+      background: #007aff;
+      color: white;
+      border: none;
+      padding: 0.8rem 1.2rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .prompt-section button:hover {
+      background: #005bb5;
+    }
+
+    .prompt-section button:active {
+      transform: scale(0.98);
+    }
+
+    /* Grid container */
+    .grid-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    /* Channel Card Styling */
+    .channel-card {
+      background: white;
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      text-align: left;
+    }
+
+    .channel-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .channel-card h2 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #007aff;
+    }
+
+    .channel-card p {
+      font-size: 1rem;
+      color: #6c757d;
+      margin-bottom: 0.5rem;
+    }
+
+    .channel-card ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .channel-card ul li {
+      font-size: 1rem;
+      color: #6c757d;
+      margin-bottom: 0.3rem;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 14px;
+      color: #6c757d;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <h1>AI Generated Content Strategy</h1>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <h2 class="page-title">Marketing Channels Overview</h2>
+
+    <!-- Input and Regenerate Button -->
+    <div class="prompt-section">
+      <input type="text" id="companyName" placeholder="Enter Company Name..." />
+      <button id="regenerateBtn">
+        <i class="fa fa-sync"></i> Generate
+      </button>
+    </div>
+
+    <!-- Grid Display -->
+    <div class="grid-container" id="dataGrid"></div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Your Company. All rights reserved.</p>
+  </footer>
+
+  <script>
+    const dataGrid = document.getElementById('dataGrid');
+    const regenerateBtn = document.getElementById('regenerateBtn');
+    const companyNameInput = document.getElementById('companyName');
+
+    async function fetchContentSuggestions(companyName) {
+      try {
+        const response = await fetch('http://localhost:4000/api/content_suggestions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ companyName })
+        });
+
+        if (!response.ok) throw new Error('Network response was not ok');
+
+        const data = await response.json();
+        console.log('Received:', data);
+
+        // ✅ Fix: Extract the correct key for channel schedules
+        if (data.success && data.marketing_plan && data.marketing_plan.channel_schedules) {
+          populateGrid(data.marketing_plan.channel_schedules);
+        } else {
+          dataGrid.innerHTML = `<div class="channel-card"><h2>No Results</h2><p>No content suggestions found.</p></div>`;
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        dataGrid.innerHTML = `<div class="channel-card"><h2>Error</h2><p>Unable to fetch data. Try again later.</p></div>`;
+      }
+    }
+
+    function populateGrid(channels) {
+      dataGrid.innerHTML = '';
+
+      channels.forEach((channelData) => {
+        const card = document.createElement('div');
+        card.className = 'channel-card';
+
+        card.innerHTML = `
+          <h2>${channelData.channel}</h2>
+          <p><strong>Frequency:</strong> ${channelData.frequency} | <strong>Priority:</strong> ${channelData.priority}</p>
+          <p><strong>Best Posting Times:</strong> ${channelData.best_posting_times.join(', ')}</p>
+          <h3>Content Schedule</h3>
+          <ul>${channelData.weekly_schedule.content_types.map(type => `<li>${type}</li>`).join('')}</ul>
+          <h3>Content Details</h3>
+          <ul>
+            ${channelData.content_types.map(content => `
+              <li><strong>Type:</strong> ${content.type} | <strong>Title:</strong> ${content.title || 'N/A'}</li>
+              <li><strong>Description:</strong> ${content.content || content.caption || 'No details available'}</li>
+              <li><strong>Hashtags:</strong> ${content.hashtags ? content.hashtags.join(', ') : 'None'}</li>
+            `).join('')}
+          </ul>
+        `;
+
+        dataGrid.appendChild(card);
+      });
+    }
+
+    regenerateBtn.addEventListener('click', () => {
+      const companyName = companyNameInput.value.trim();
+      if (!companyName) {
+        alert('Please enter a company name.');
+        return;
+      }
+      fetchContentSuggestions(companyName);
+    });
+  </script>
+
+</body>
+</html>

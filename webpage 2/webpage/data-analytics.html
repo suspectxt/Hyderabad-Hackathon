@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Analysis</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "ABC",
+            authDomain: "ABC",
+            projectId: "ABC",
+            storageBucket: "ABC",
+            messagingSenderId: "ABC",
+            appId: "ABC"
+        };
+
+        // Add this helper function at the start of your script
+        function logWithTimestamp(message, type = 'info', data = null) {
+            const timestamp = new Date().toISOString();
+            const logMessage = `[${timestamp}] ${message}`;
+            
+            switch(type) {
+                case 'error':
+                    console.error(logMessage, data || '');
+                    break;
+                case 'warn':
+                    console.warn(logMessage, data || '');
+                    break;
+                case 'info':
+                    console.info(logMessage, data || '');
+                    break;
+                default:
+                    console.log(logMessage, data || '');
+            }
+        }
+
+        // Firebase logging helper functions
+        function logFirebaseOperation(operation, path, status = 'start', error = null) {
+            const timestamp = new Date().toISOString();
+            const baseMessage = `[${timestamp}] [Firebase] ${operation} - ${path}`;
+            
+            if (status === 'start') {
+                console.info(`${baseMessage} - Started`);
+            } else if (status === 'success') {
+                console.info(`${baseMessage} - Completed successfully`);
+            } else if (status === 'error') {
+                console.error(`${baseMessage} - Failed:`, error);
+            }
+        }
+
+        // Load company name from session.json
+        fetch('session.json')
+            .then(response => response.json())
+            .then(session => {
+                const companyName = session.currentSession;
+                document.getElementById('companyName').textContent = companyName;
+                logWithTimestamp(`Company name loaded: ${companyName}`);
+            })
+            .catch(error => {
+                logWithTimestamp('Error fetching session', 'error', error);
+            });
+
+        // Firebase initialization
+        let db;
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            console.info(`[${new Date().toISOString()}] [Firebase] Initialization successful`);
+        } catch (error) {
+            console.error(`[${new Date().toISOString()}] [Firebase] Initialization failed:`, error);
+        }
+
+        // Function to fetch data and display charts
+        window.fetchData = async function fetchData() {
+            const date = document.getElementById('dateInput').value;
+            if (!date) {
+                alert("Please enter a date in 'yyyy-mm' format.");
+                return;
+            }
+
+            try {
+                const session = await fetch('session.json').then(response => response.json());
+                const companyName = session.currentSession;
+                logWithTimestamp(`Fetching data for company: ${companyName}, date: ${date}`);
+                
+                const categories = [
+                    'monthlySales',
+                    'websiteTraffic',
+                    'monthlyExpenditure',
+                    'sentimentAnalysis',
+                    'instagramEngagement',
+                    'inventoryLevel'
+                ];
+
+                for (const category of categories) {
+                    logFirebaseOperation('getData', `stats/${companyName}/${category}`, 'start');
+                    const ref = collection(db, `stats/${companyName}/${category}`);
+                    const snapshot = await getDocs(ref);
+                    
+                    let categoryData = null;
+                    
+                    if (category === 'instagramEngagement' || category === 'websiteTraffic') {
+                        // Get last 6 months of data for Instagram and Website Traffic
+                        const currentDate = new Date(date);
+                        const sixMonthsData = {};
+                        
+                        for (let i = 0; i < 6; i++) {
+                            const monthDate = new Date(currentDate);
+                            monthDate.setMonth(currentDate.getMonth() - i);
+                            const monthKey = monthDate.toISOString().slice(0, 7); // Format: YYYY-MM
+                            
+                            snapshot.forEach(doc => {
+                                if (doc.id === monthKey) {
+                                    sixMonthsData[monthKey] = doc.data().value || 0;
+                                }
+                            });
+                        }
+                        
+                        // Sort the data chronologically
+                        const sortedData = Object.fromEntries(
+                            Object.entries(sixMonthsData).sort(([a], [b]) => a.localeCompare(b))
+                        );
+                        
+                        if (Object.keys(sortedData).length > 0) {
+                            categoryData = sortedData;
+                            logWithTimestamp(`Data for ${category}:`, 'info', {
+                                months: Object.keys(sortedData),
+                                data: sortedData
+                            });
+                        }
+                    } else if (category === 'inventoryLevel') {
+                        // Get inventory data from users collection
+                        logFirebaseOperation('getData', `users/${companyName}`, 'start');
+                        console.log("Attempting to fetch inventory for company:", companyName);
+                        
+                        try {
+                            // Reference to the specific document
+                            const docRef = doc(db, 'users', companyName.toLowerCase()); // Convert to lowercase
+                            
+                            // Fetch the document
+                            getDoc(docRef)
+                                .then((docSnap) => {
+                                    console.log("Full document data:", docSnap);
+                                    console.log("Document path:", docRef.path);
+                                    
+                                    if (docSnap.exists()) {
+                                        const userData = docSnap.data();
+                                        const inventoryData = {};
+                                        
+                                        if (userData.products) {
+                                            console.log("Products data:", userData.products);
+                                            // Extract all products from the products map
+                                            Object.entries(userData.products).forEach(([product, value]) => {
+                                                inventoryData[product] = value;
+                                            });
+                                            
+                                            categoryData = inventoryData;
+                                            logWithTimestamp(`Data for ${category}:`, 'info', {
+                                                products: Object.keys(inventoryData),
+                                                data: inventoryData
+                                            });
+                                            logFirebaseOperation('getData', `users/${companyName}`, 'success');
+                                            
+                                            // Render the chart immediately since we have the data
+                                            renderChart(category, inventoryData);
+                                        } else {
+                                            logWithTimestamp(`No products found in user document for ${companyName}`, 'warn');
+                                        }
+                                    } else {
+                                        console.error(`No document found at path: ${docRef.path}`);
+                                        logWithTimestamp(`No user document found for ${companyName}`, 'warn');
+                                    }
+                                })
+                                .catch((error) => {
+                                    console.error("Detailed error:", error);
+                                    logFirebaseOperation('getData', `users/${companyName}`, 'error', error);
+                                    logWithTimestamp(`Error fetching inventory data: ${error.message}`, 'error');
+                                });
+                        } catch (error) {
+                            console.error("Initialization error:", error);
+                            logFirebaseOperation('getData', `users/${companyName}`, 'error', error);
+                            logWithTimestamp(`Error fetching inventory data: ${error.message}`, 'error');
+                        }
+                        
+                        // Skip the rest of the loop's processing for inventory
+                        continue;
+                    } else if (category === 'monthlyExpenditure' || category === 'monthlySales') {
+                        // Get last 6 months of data for Expenditure and Sales
+                        const currentDate = new Date(date);
+                        const sixMonthsData = {};
+                        
+                        for (let i = 0; i < 6; i++) {
+                            const monthDate = new Date(currentDate);
+                            monthDate.setMonth(currentDate.getMonth() - i);
+                            const monthKey = monthDate.toISOString().slice(0, 7); // Format: YYYY-MM
+                            
+                            snapshot.forEach(doc => {
+                                if (doc.id === monthKey) {
+                                    sixMonthsData[monthKey] = doc.data().value || 0;
+                                }
+                            });
+                        }
+                        
+                        // Sort the data chronologically
+                        const sortedData = Object.fromEntries(
+                            Object.entries(sixMonthsData).sort(([a], [b]) => a.localeCompare(b))
+                        );
+                        
+                        if (Object.keys(sortedData).length > 0) {
+                            categoryData = sortedData;
+                            logWithTimestamp(`Data for ${category}:`, 'info', {
+                                months: Object.keys(sortedData),
+                                data: sortedData
+                            });
+                        }
+                    } else {
+                        // Regular single month data for other categories
+                        snapshot.forEach(doc => {
+                            if (doc.id === date) {
+                                categoryData = doc.data();
+                                logWithTimestamp(`Data for ${category}:`, 'info', {
+                                    date: doc.id,
+                                    data: categoryData
+                                });
+                            }
+                        });
+                    }
+
+                    if (!categoryData) {
+                        logWithTimestamp(`No data found for ${category} on ${date}`, 'warn');
+                    } else {
+                        logFirebaseOperation('getData', `stats/${companyName}/${category}`, 'success');
+                        renderChart(category, categoryData);
+                    }
+                }
+            } catch (error) {
+                logWithTimestamp('Error fetching data:', 'error', error);
+                alert('Error fetching data. Please try again.');
+            }
+        }
+
+        // Function to render charts using Chart.js
+        function renderChart(category, data) {
+            logWithTimestamp(`Starting chart rendering for ${category}`);
+            const ctx = document.getElementById(`${category}Chart`).getContext('2d');
+            
+            // Clear previous chart if exists
+            if (Chart.getChart(ctx)) {
+                logWithTimestamp(`Destroying existing ${category} chart`);
+                Chart.getChart(ctx).destroy();
+            }
+
+            let chartType, chartData;
+            try {
+                switch (category) {
+                    case 'monthlySales':
+                        chartType = 'bar';
+                        chartData = {
+                            labels: Object.keys(data),
+                            datasets: [{
+                                label: category,
+                                data: Object.values(data),
+                                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            }]
+                        };
+                        break;
+                   case 'inventoryLevel':
+                        chartType = 'doughnut';
+                        chartData = {
+                            labels: Object.keys(data),
+                            datasets: [{
+                                data: Object.values(data),
+                                backgroundColor: [
+                                    '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'
+                                ]
+                            }]
+                        };
+                        break;
+                    case 'monthlyExpenditure':
+                        chartType = 'line';
+                        // Get the monthly sales data from the existing chart
+                        const salesChart = Chart.getChart(document.getElementById('monthlySalesChart'));
+                        const salesData = salesChart ? salesChart.data.datasets[0].data : [];
+                        const salesLabels = salesChart ? salesChart.data.labels : [];
+                        
+                        chartData = {
+                            labels: Object.keys(data),
+                            datasets: [
+                                {
+                                    label: 'Monthly Sales',
+                                    data: salesData,
+                                    borderColor: 'rgba(75, 192, 192, 1)',
+                                    borderWidth: 2,
+                                    fill: false
+                                },
+                                {
+                                    label: 'Monthly Expenditure',
+                                    data: Object.values(data),
+                                    borderColor: 'rgba(255, 99, 132, 1)',
+                                    borderWidth: 2,
+                                    fill: false
+                                }
+                            ]
+                        };
+                        break;
+                    case 'sentimentAnalysis':
+                        chartType = 'doughnut';
+                        chartData = {
+                            labels: Object.keys(data),
+                            datasets: [{
+                                data: Object.values(data),
+                                backgroundColor: [
+                                    '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56'
+                                ]
+                            }]
+                        };
+                        break;
+                    case 'instagramEngagement':
+                        chartType = 'line';
+                        chartData = {
+                            labels: Object.keys(data),
+                            datasets: [{
+                                label: category,
+                                data: Object.values(data),
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 2,
+                                fill: false
+                            }]
+                        };
+                        break;
+                    case 'websiteTraffic':
+                        chartType = 'line';
+                        chartData = {
+                            labels: Object.keys(data),
+                            datasets: [{
+                                label: category,
+                                data: Object.values(data),
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 2,
+                                fill: false
+                            }]
+                        };
+                        break;
+                }
+
+                logWithTimestamp(`Creating new ${category} chart with type: ${chartType}`);
+                new Chart(ctx, {
+                    type: chartType,
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+                logWithTimestamp(`Successfully rendered ${category} chart`);
+            } catch (error) {
+                logWithTimestamp(`Error rendering ${category} chart`, 'error', error);
+            }
+        }
+    </script>
+</head>
+<body>
+    
+    <div id="vanta-background"></div>
+    <header>
+        <nav>
+            <a href="index.html" class="logo" style="color: rgb(4, 247, 247); text-decoration: none;">GrowMore</a>
+        </nav>
+    </header>
+
+    <h1 style="color: rgb(240, 242, 242)">Sales Analysis</h1>
+    <div id="companyName" class="company-name-box">Loading...</div>
+    <form>
+        <input type="text" id="dateInput" placeholder="yyyy-mm" required>
+        <button type="button" onclick="fetchData()">Generate</button>
+    </form>
+
+    <div class="grid">
+        <div class="card">
+            <h3>Monthly Sales</h3>
+            <canvas id="monthlySalesChart"></canvas>
+        </div>
+        <div class="card">
+            <h3>Website Traffic</h3>
+            <canvas id="websiteTrafficChart"></canvas>
+        </div>
+        <div class="card">
+            <h3>Monthly Expenditure</h3>
+            <canvas id="monthlyExpenditureChart"></canvas>
+        </div>
+        <div class="card" ">
+            <h3>Sentiment Analysis</h3>
+            <canvas id="sentimentAnalysisChart"></canvas>
+        </div>
+        <div class="card">
+            <h3>Instagram Engagement</h3>
+            <canvas id="instagramEngagementChart"></canvas>
+        </div>
+        <div class="card">
+            <h3>Inventory Level</h3>
+            <canvas id="inventoryLevelChart"></canvas>
+        </div>
+    </div>
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.waves.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        VANTA.WAVES({
+            el: "#vanta-background",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00,
+            shininess: 14.00,
+            waveHeight: 6.50,
+            waveSpeed: 0.50,
+            color: 0x182f4d
+        });
+    });
+    </script>
+</body>
+</html>

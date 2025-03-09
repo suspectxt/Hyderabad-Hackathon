@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hyderabad_Hacks Onboarding Overview</title>
+  <style>
+    /* Reset and base styling */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f9f9f9;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      padding: 40px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      color: #111;
+    }
+    header p {
+      font-size: 1.2em;
+      color: #666;
+    }
+    section {
+      margin-bottom: 40px;
+    }
+    section h2 {
+      font-size: 1.8em;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    ul {
+      list-style-type: disc;
+      padding-left: 20px;
+    }
+    .card, .channel-card, .phase {
+      background: #fafafa;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .channel-card h3,
+    .channel-card h4,
+    .phase h4 {
+      margin-bottom: 10px;
+    }
+    .priority {
+      font-size: 0.8em;
+      color: #007aff;
+      text-transform: uppercase;
+      margin-left: 10px;
+    }
+    /* Flex styling for channels */
+    .channels, .channel-schedules {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .channel-card {
+      flex: 1 1 45%;
+      min-width: 280px;
+    }
+    @media (max-width: 600px) {
+      .channels, .channel-schedules {
+        flex-direction: column;
+      }
+    }
+    .generated-at {
+      text-align: right;
+      font-size: 0.85em;
+      color: #999;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="container">
+    <!-- Content will be injected here by JavaScript -->
+  </div>
+  <script>
+    // Fetch JSON data from an external file (data.json)
+    fetch('data.json')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok " + response.statusText);
+        }
+        return response.json();
+      })
+      .then(data => renderContent(data))
+      .catch(error => {
+        console.error("Error fetching JSON:", error);
+        document.getElementById('container').innerHTML = "<p>Error loading data.</p>";
+      });
+    
+    function renderContent(data) {
+      const container = document.getElementById('container');
+
+      // Build Header
+      let html = `
+        <header>
+          <h1>${data.company_name}</h1>
+          <p>${data.message}</p>
+        </header>
+      `;
+
+      // Recommended Features Section
+    //   html += `
+    //     <section id="recommended-features">
+    //       <h2>Recommended Features</h2>
+    //       <ul>
+    //         ${data.recommended_features.map(feature => `<li>${feature}</li>`).join('')}
+    //       </ul>
+    //     </section>
+    //   `;
+
+      // Marketing Channels Section
+      html += `
+        <section id="marketing-channels">
+          <h2>Marketing Channels</h2>
+          <div class="channels">
+            ${data.marketing_channels.recommended_channels.map(channel => `
+              <div class="channel-card">
+                <h3>${channel.channel} <span class="priority">${channel.priority}</span></h3>
+                <p>${channel.reason}</p>
+              </div>
+            `).join('')}
+          </div>
+        </section>
+      `;
+
+      // Marketing Plan Section
+      html += `
+        <section id="marketing-plan">
+          <h2>Marketing Plan</h2>
+          <div class="card plan-overview">
+            <h3>Plan Overview</h3>
+            <p><strong>Duration:</strong> ${data.marketing_plan.plan_overview.duration_days} days</p>
+            <p><strong>Start Date:</strong> ${data.marketing_plan.plan_overview.start_date}</p>
+            <h4>Primary Goals:</h4>
+            <ul>
+              ${data.marketing_plan.plan_overview.primary_goals.map(goal => `<li>${goal}</li>`).join('')}
+            </ul>
+          </div>
+      `;
+
+      // Plan Phases
+      html += `<div class="card plan-phases">
+                <h3>Plan Phases</h3>
+                ${data.marketing_plan.phases.map(phase => `
+                  <div class="phase">
+                    <h4>${phase.phase} (Days ${phase.start_day}-${phase.end_day})</h4>
+                    <p>${phase.description}</p>
+                    <h5>Objectives:</h5>
+                    <ul>
+                      ${phase.objectives.map(obj => `<li>${obj}</li>`).join('')}
+                    </ul>
+                  </div>
+                `).join('')}
+              </div>`;
+
+      // Channel Schedules
+      html += `<div class="card channel-schedules">
+                <h3>Channel Schedules</h3>
+                ${data.marketing_plan.channel_schedules.map(schedule => {
+                  // Check if best_posting_times is available
+                  let bestTimes = schedule.best_posting_times ? schedule.best_posting_times.join(", ") : "N/A";
+                  
+                  // Build weekly schedule if available
+                  let weeklyScheduleHTML = "";
+                  if (schedule.weekly_schedule) {
+                    weeklyScheduleHTML = Object.entries(schedule.weekly_schedule)
+                      .map(([day, events]) => {
+                        // Handle events if they are objects
+                        let eventDetails = Array.isArray(events)
+                          ? events.map(event => {
+                              if (typeof event === 'object') {
+                                return `${event.time} - ${event.content_type}`;
+                              }
+                              return event;
+                            }).join(", ")
+                          : events;
+                        return `<li>${day}: ${eventDetails}</li>`;
+                      }).join('');
+                  } else {
+                    weeklyScheduleHTML = "<li>N/A</li>";
+                  }
+                  
+                  return `
+                    <div class="channel-card">
+                      <h4>${schedule.channel}</h4>
+                      <p><strong>Priority:</strong> ${schedule.priority}</p>
+                      <p><strong>Frequency:</strong> ${schedule.frequency}</p>
+                      <p><strong>Best Posting Times:</strong> ${bestTimes}</p>
+                      <h5>Content Types:</h5>
+                      <ul>
+                        ${schedule.content_types.map(content => `<li>${content}</li>`).join('')}
+                      </ul>
+                      <h5>Weekly Schedule:</h5>
+                      <ul>
+                        ${weeklyScheduleHTML}
+                      </ul>
+                    </div>
+                  `;
+                }).join('')}
+              </div>`;
+
+      // Resource Allocation
+      html += `<div class="card resource-allocation">
+                <h3>Resource Allocation</h3>
+                <h4>Budget Distribution</h4>
+                <ul>
+                  ${Object.entries(data.marketing_plan.resource_allocation.budget_distribution)
+                    .map(([channel, amount]) => `<li>${channel}: ${amount}%</li>`).join('')}
+                </ul>
+                <h4>Team Requirements</h4>
+                <ul>
+                  ${Object.entries(data.marketing_plan.resource_allocation.team_requirements)
+                    .map(([role, count]) => `<li>${role}: ${count}</li>`).join('')}
+                </ul>
+              </div>`;
+
+      // KPIs Section
+      html += `<div class="card kpis">
+                <h3>Key Performance Indicators (KPIs)</h3>
+                <ul>
+                  ${data.marketing_plan.kpis.map(kpi => `<li>${kpi.metric}: ${kpi.target} (${kpi.measurement_frequency})</li>`).join('')}
+                </ul>
+              </div>`;
+
+      // Generated Info
+      html += `<div class="generated-at">
+                 <p><em>Plan generated at: ${data.marketing_plan.generated_at}</em></p>
+                 <p><em>Plan version: ${data.marketing_plan.plan_version}</em></p>
+               </div>`;
+
+      container.innerHTML = html;
+    }
+  </script>
+</body>
+</html>

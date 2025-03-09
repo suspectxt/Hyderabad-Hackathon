@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - GrowMore</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :root {
+            --primary-color: #2fa6e6; /* Dark Blue */
+            --accent-color: #36f1d2; /* Light Blue */
+            --success-color: #0e3496; /* Green */
+            --warning-color: #ff9800; /* Orange */
+            --light-bg: #f8f9fa; /* Light Gray */
+            --dark-text: #082668; /* Dark Text */
+            --white: #ffffff; /* White */
+        }
+
+        body {
+            background-color: var(--white);
+            color: var(--dark-text);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+        }
+
+        /* Registration Container */
+        .register-container {
+            background: var(--white);
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .register-container h1 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .register-container p {
+            font-size: 0.9rem;
+            color: var(--dark-text);
+            margin-bottom: 2rem;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--dark-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid var(--light-bg);
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--accent-color);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #999;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Button Styles */
+        .register-button {
+            background-color: var(--accent-color);
+            color: var(--white);
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .register-button:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+
+        /* Footer Link */
+        .footer-link {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--dark-text);
+        }
+
+        .footer-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-link a:hover {
+            color: var(--accent-color);
+        }
+
+        /* Error Message */
+        .error-message {
+            color: #ff0000;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Registration Container -->
+    <div class="register-container">
+        <h1>Create Your Account</h1>
+        <p>Join GrowMore to unlock powerful tools for your business growth.</p>
+
+        <!-- Registration Form -->
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Enter your username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+                <div class="error-message" id="passwordError">Password must be alphanumeric.</div>
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" placeholder="Confirm your password" required>
+                <div class="error-message" id="confirmPasswordError">Passwords do not match.</div>
+            </div>
+            <div class="form-group">
+                <label for="companyName">Company Name</label>
+                <input type="text" id="companyName" placeholder="Enter your company name" required>
+            </div>
+            <div class="form-group">
+                <label for="companyDescription">Company Description</label>
+                <textarea id="companyDescription" placeholder="Describe your company" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="products">Products</label>
+                <textarea id="products" placeholder="Enter your products" rows="4" required></textarea>
+            </div>
+            <button type="submit" class="register-button">Register</button>
+        </form>
+
+        <!-- Footer Link -->
+        <div class="footer-link">
+            Already have an account? <a href="login.html">Log In</a>
+        </div>
+    </div>
+
+    <script>
+        // Function to validate password (alphanumeric)
+        function isAlphanumeric(password) {
+            const alphanumericRegex = /^(?=.*[a-zA-Z])(?=.*\d).+$/;
+            return alphanumericRegex.test(password);
+        }
+
+        // Handle form submission
+        document.getElementById('registerForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Get form values
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const companyName = document.getElementById('companyName').value;
+            const companyDescription = document.getElementById('companyDescription').value;
+
+            // Reset error messages
+            document.getElementById('passwordError').style.display = 'none';
+            document.getElementById('confirmPasswordError').style.display = 'none';
+
+            // Validate password (alphanumeric)
+            if (!isAlphanumeric(password)) {
+                document.getElementById('passwordError').style.display = 'block';
+                return;
+            }
+
+            // Validate password match
+            if (password !== confirmPassword) {
+                document.getElementById('confirmPasswordError').style.display = 'block';
+                return;
+            }
+
+            // Simulate successful registration
+            alert(`Welcome, ${username}! Your company ${companyName} has been registered.`);
+            window.location.href = 'index.html'; // Redirect to dashboard
+        });
+    </script>
+    <script src="register.js"></script>
+
+</body>
+</html>
